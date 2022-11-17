@@ -451,3 +451,22 @@ cc_defaults {
         },
     },
 }
+
+// 适配linux, libcore/JavaLibrary.bp
+java_library {
+    name: "core-generated-annotation-stubs",
+    visibility: [
+        "//art/build/sdk",
+        "//build/soong/java/core-libraries",
+    ],
+    defaults: ["libcore_java_defaults"],
+    srcs: [
+        ":openjdk_generated_annotation_stub_files",
+    ],
+    hostdex: true,
+    sdk_version: "none",
+    system_modules: "core-all-system-modules",
+    patch_module: "java.base",
+    installable: false,
+    include_srcs: true,
+}
