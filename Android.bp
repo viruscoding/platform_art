@@ -453,43 +453,12 @@ cc_defaults {
 }
 
 // 适配linux, libcore/JavaLibrary.bp
-java_defaults {
-    name: "libcore_java_defaults",
-    visibility: [
-        "//libcore:__subpackages__",
-    ],
-    javacflags: [
-        //"-Xlint:all",
-        //"-Xlint:-serial,-deprecation,-unchecked",
-    ],
-    dxflags: [
-        "--android-platform-build",
-        "--core-library",
-    ],
-    errorprone: {
-        javacflags: [
-            "-Xep:MissingOverride:OFF", // Ignore missing @Override.
-            "-Xep:ConstantOverflow:WARN", // Known constant overflow in SplittableRandom
-            "-Xep:UnicodeInCode:WARN", // XML parser uses line feeds in whitespace
-            "-Xep:ReturnValueIgnored:WARN",
-            "-Xep:HashtableContains:WARN",
-            "-Xep:ComparableType:WARN",
-            "-Xep:IdentityBinaryExpression:WARN",
-            "-Xep:BoxedPrimitiveEquality:WARN",
-            "-Xep:EmptyTopLevelDeclaration:WARN",
-            "-Xep:GetClassOnClass:WARN",
-            "-Xep:NullableOnContainingClass:WARN",
-            "-Xep:GetClassOnAnnotation:WARN",
-        ],
-    },
-}
 java_library {
     name: "core-generated-annotation-stubs",
     visibility: [
         "//art/build/sdk",
         "//build/soong/java/core-libraries",
     ],
-    defaults: ["libcore_java_defaults"],
     srcs: [
         ":openjdk_generated_annotation_stub_files",
     ],
@@ -497,6 +466,17 @@ java_library {
     sdk_version: "none",
     system_modules: "core-all-system-modules",
     patch_module: "java.base",
+    installable: false,
+    include_srcs: true,
+}
+java_defaults {
+    name: "core_lambda_stubs_defaults",
+    hostdex: true,
+
+    sdk_version: "none",
+    system_modules: "core-all-system-modules",
+    patch_module: "java.base",
+
     installable: false,
     include_srcs: true,
 }
