@@ -250,7 +250,7 @@ prebuilt_defaults {
 }
 
 // linux适配,libnativehelper需要cts相关设置移到这里,懒得增加模块
-cts/Android.bp
+// cts/Android.bp
 java_defaults {
     name: "cts_error_prone_rules",
     errorprone: {
