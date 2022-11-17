@@ -186,3 +186,65 @@ cc_defaults {
         },
     },
 }
+
+cc_defaults {
+    name: "art_module_source_build_defaults",
+    defaults_visibility: [
+        "//art:__subpackages__",
+        "//libcore:__subpackages__",
+        "//libnativehelper:__subpackages__",
+    ],
+    enabled: false,
+    target: {
+        windows: {
+            // Windows is disabled by default, but if we set enabled:true
+            // globally above we need to disable it explicitly.
+            enabled: false,
+        },
+    },
+}
+
+java_defaults {
+    name: "art_module_source_build_java_defaults",
+    defaults_visibility: [
+        "//art:__subpackages__",
+        "//libcore:__subpackages__",
+        "//libnativehelper:__subpackages__",
+    ],
+    enabled: false,
+    target: {
+        windows: {
+            enabled: false,
+        },
+    },
+}
+
+genrule_defaults {
+    name: "art_module_source_build_genrule_defaults",
+    defaults_visibility: [
+        "//art:__subpackages__",
+        "//libcore:__subpackages__",
+        "//libnativehelper:__subpackages__",
+    ],
+    enabled: false,
+    target: {
+        windows: {
+            enabled: false,
+        },
+    },
+}
+
+prebuilt_defaults {
+    name: "art_module_source_build_prebuilt_defaults",
+    defaults_visibility: [
+        "//art:__subpackages__",
+        "//libcore:__subpackages__",
+        "//libnativehelper:__subpackages__",
+    ],
+    enabled: false,
+    target: {
+        windows: {
+            enabled: false,
+        },
+    },
+}
