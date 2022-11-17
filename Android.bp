@@ -469,14 +469,11 @@ java_library {
     installable: false,
     include_srcs: true,
 }
-java_defaults {
-    name: "core_lambda_stubs_defaults",
-    hostdex: true,
-
-    sdk_version: "none",
-    system_modules: "core-all-system-modules",
-    patch_module: "java.base",
-
-    installable: false,
+java_library {
+    name: "core-lambda-stubs-for-system-modules",
+    visibility: [
+        "//art/build/sdk",
+        "//build/soong/java/core-libraries",
+    ],
     include_srcs: true,
 }
