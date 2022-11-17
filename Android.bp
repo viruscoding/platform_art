@@ -248,3 +248,206 @@ prebuilt_defaults {
         },
     },
 }
+
+// linux适配,libnativehelper需要cts相关设置移到这里,懒得增加模块
+// cts/Android.bp
+java_defaults {
+    name: "cts_error_prone_rules",
+    errorprone: {
+        javacflags: [
+            // Set of error prone rules to ensure code quality
+            // When updating this list, also update error_prone_rules.mk
+            "-Xep:ArrayToString:ERROR",
+            "-Xep:BoxedPrimitiveConstructor:ERROR",
+            "-Xep:ConstantField:ERROR",
+            "-Xep:EqualsIncompatibleType:ERROR",
+            "-Xep:FormatString:ERROR",
+            "-Xep:GetClassOnClass:ERROR",
+            "-Xep:IdentityBinaryExpression:ERROR",
+            "-Xep:JUnit3TestNotRun:ERROR",
+            "-Xep:JUnit4ClassUsedInJUnit3:ERROR",
+            "-Xep:JUnitAmbiguousTestClass:ERROR",
+            "-Xep:MissingFail:ERROR",
+            "-Xep:MissingOverride:ERROR",
+            "-Xep:Overrides:ERROR",
+            "-Xep:ReferenceEquality:ERROR",
+            "-Xep:RemoveUnusedImports:ERROR",
+            "-Xep:ReturnValueIgnored:ERROR",
+            "-Xep:SelfEquals:ERROR",
+            "-Xep:SizeGreaterThanOrEqualsZero:ERROR",
+            "-Xep:TryFailThrowable:ERROR",
+        ],
+    },
+}
+
+java_defaults {
+    name: "cts_error_prone_rules_tests",
+    errorprone: {
+        javacflags: [
+            // Set of error prone rules to ensure code quality of tests
+            // Goal is to eventually merge with cts_error_prone_rules
+            // When updating this list, also update error_prone_rules_tests.mk
+            "-Xep:ArrayToString:ERROR",
+            "-Xep:CollectionIncompatibleType:ERROR",
+            "-Xep:EqualsIncompatibleType:ERROR",
+            "-Xep:EqualsNaN:ERROR",
+            "-Xep:FormatString:ERROR",
+            "-Xep:IdentityBinaryExpression:ERROR",
+            "-Xep:JUnit3TestNotRun:ERROR",
+            "-Xep:JUnit4ClassUsedInJUnit3:ERROR",
+            "-Xep:JUnitAmbiguousTestClass:ERROR",
+            "-Xep:MissingFail:ERROR",
+            "-Xep:SizeGreaterThanOrEqualsZero:ERROR",
+            "-Xep:TryFailThrowable:ERROR",
+        ],
+    },
+}
+
+// Used with an android_test / android_test_helper_app, this is equivalent to
+// BUILD_CTS_SUPPORT_PACKAGE
+java_defaults {
+    name: "cts_support_defaults",
+    defaults: ["cts_error_prone_rules_tests"],
+    dex_preopt: {
+        enabled: false,
+    },
+    optimize: {
+        enabled: false,
+    },
+}
+
+// Used with different module types, this is equivalent to:
+//   android_test: BUILD_CTS_PACKAGE
+//   java_library: BUILD_CTS_TARGET_JAVA_LIBRARY
+//   java_library_host: BUILD_CTS_HOST_JAVA_LIBRARY
+java_defaults {
+    name: "cts_defaults",
+    defaults_visibility: [
+        "//libnativehelper/tests_mts",
+    ],
+    defaults: ["cts_support_defaults"],
+    // target: {
+    //     android: {
+    //         static_libs: ["platform-test-annotations"],
+    //     },
+    // },
+}
+
+java_defaults {
+    name: "mts-target-sdk-version-current",
+    target_sdk_version: "10000",
+}
+
+// linu适配,soong需要adb相关设置
+// packages/modules/adb/Android.bp
+tidy_errors = [
+    "-*",
+    "bugprone-inaccurate-erase",
+    "bugprone-use-after-move",
+]
+
+cc_defaults {
+    name: "adb_defaults",
+
+    cflags: [
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wexit-time-destructors",
+        "-Wno-non-virtual-dtor",
+        "-Wno-unused-parameter",
+        "-Wno-missing-field-initializers",
+        "-Wthread-safety",
+        "-Wvla",
+        "-DADB_HOST=1",         // overridden by adbd_defaults
+        "-DANDROID_BASE_UNIQUE_FD_DISABLE_IMPLICIT_CONVERSION=1",
+    ],
+    cpp_std: "experimental",
+
+    use_version_lib: true,
+    compile_multilib: "first",
+
+    target: {
+        darwin: {
+            host_ldlibs: [
+                "-lpthread",
+                "-framework CoreFoundation",
+                "-framework IOKit",
+                "-framework Security",
+                "-lobjc",
+            ],
+            cflags: [
+                // Required, to use the new IPv6 Sockets options introduced by RFC 3542.
+                "-D__APPLE_USE_RFC_3542",
+            ],
+        },
+
+        windows: {
+            cflags: [
+                // Define windows.h and tchar.h Unicode preprocessor symbols so that
+                // CreateFile(), _tfopen(), etc. map to versions that take wchar_t*, breaking the
+                // build if you accidentally pass char*. Fix by calling like:
+                //   std::wstring path_wide;
+                //   if (!android::base::UTF8ToWide(path_utf8, &path_wide)) { /* error handling */ }
+                //   CreateFileW(path_wide.c_str());
+                "-DUNICODE=1",
+                "-D_UNICODE=1",
+
+                // Unlike on Linux, -std=gnu++ doesn't set _GNU_SOURCE on Windows.
+                "-D_GNU_SOURCE",
+
+                // MinGW hides some things behind _POSIX_SOURCE.
+                "-D_POSIX_SOURCE",
+
+                // libusb uses __stdcall on a variadic function, which gets ignored.
+                "-Wno-ignored-attributes",
+
+                // Not supported yet.
+                "-Wno-thread-safety",
+            ],
+
+            host_ldlibs: [
+                "-lws2_32",
+                "-lgdi32",
+                "-luserenv",
+                "-liphlpapi",
+            ],
+        },
+    },
+
+    tidy: true,
+    tidy_checks: tidy_errors,
+    tidy_checks_as_errors: tidy_errors,
+}
+
+cc_defaults {
+    name: "adbd_defaults",
+    defaults: ["adb_defaults"],
+    defaults_visibility: [
+        "//build/bazel/examples/soong_config_variables"
+    ],
+    cflags: ["-UADB_HOST", "-DADB_HOST=0"],
+}
+
+cc_defaults {
+    name: "host_adbd_supported",
+    defaults_visibility: [
+        "//build/bazel/examples/soong_config_variables"
+    ],
+    host_supported: true,
+    target: {
+        linux: {
+            enabled: true,
+            host_ldlibs: [
+                "-lresolv", // b64_pton
+                "-lutil", // forkpty
+            ],
+        },
+        darwin: {
+            enabled: false,
+        },
+        windows: {
+            enabled: false,
+        },
+    },
+}
